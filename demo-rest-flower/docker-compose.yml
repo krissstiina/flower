@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flower_shop_db
+    environment:
+      POSTGRES_DB: flower_shop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432" # доступ с хоста (для IntelliJ)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - flower-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flower_shop_app
+    environment:
+      # DataSource для Docker
+      SPRING_DATASOURCE_HOST: postgres
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      # gRPC для Docker
+      GRPC_ANALYTICS_HOST: analytics-service
+      GRPC_ANALYTICS_PORT: 9090
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - flower-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  flower-network:
+    driver: bridge

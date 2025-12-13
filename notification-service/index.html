@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Центр уведомлений — Аналитика Букетов</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        #status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .notification {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid;
+            border-radius: 4px;
+            animation: slideIn 0.5s ease-out;
+        }
+        .level-very-high { background: #d4edda; border-color: #28a745; color: #155724; }
+        .level-high      { background: #e2f0cb; border-color: #8bc34a; color: #33691e; }
+        .level-medium    { background: #fff3cd; border-color: #ffca28; color: #856404; }
+        .level-low       { background: #ffe8d6; border-color: #ff9800; color: #6b4200; }
+        .level-very-low  { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        .rec-block {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.04);
+            border-radius: 4px;
+        }
+        .rec-block b { color: #333; }
+    </style>
+
+</head>
+<body>
+<div class="container">
+    <h2>🔥 Центр уведомлений — Популярность Букетов</h2>
+    <div id="status">Отключено</div>
+    <div id="notifications-area"></div>
+</div>
+
+<script>
+    const statusDiv = document.getElementById('status');
+    const area = document.getElementById('notifications-area');
+    let socket;
+
+    function connect() {
+        socket = new WebSocket("ws://localhost:8083/ws/notifications");
+
+        socket.onopen = () => {
+            statusDiv.innerText = 'Подключено к системе аналитики';
+            statusDiv.style.color = '#28a745';
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'BOUQUET_RATED') {
+                showBouquetNotification(data);
+            }
+        };
+
+        socket.onclose = () => {
+            statusDiv.innerText = 'Соединение потеряно. Повторная попытка...';
+            statusDiv.style.color = '#dc3545';
+
+            setTimeout(connect, 3000);
+        };
+    }
+
+    function mapPopularityLevel(level) {
+        const l = level.toLowerCase();
+
+        if (l.includes("очень высок")) return "level-very-high";
+        if (l.includes("высок"))       return "level-high";
+        if (l.includes("средн"))       return "level-medium";
+        if (l.includes("низк"))        return "level-low";
+        return "level-very-low";
+    }
+
+    function showBouquetNotification(data) {
+        let recommendations = {};
+
+        try {
+            recommendations = JSON.parse(data.recommendation);
+        } catch (e) {
+            recommendations = {
+                promotion: "Нет данных",
+                stock: "Нет данных",
+                pricing: "Нет данных"
+            };
+        }
+
+        const div = document.createElement('div');
+        div.className = "notification " + mapPopularityLevel(data.popularityLevel);
+
+        div.innerHTML = `
+            <strong>Букет ID: ${data.bouquetId}</strong><br>
+            Рейтинг популярности: <b>${data.popularityScore}</b><br>
+            Уровень: <b>${data.popularityLevel}</b>
+
+            <div class="rec-block">
+                <b>Рекомендации:</b><br>
+                • Продвижение: ${recommendations.promotion}<br>
+                • Склад: ${recommendations.stock}<br>
+                • Цены: ${recommendations.pricing}
+            </div>
+        `;
+
+        area.prepend(div);
+    }
+
+    connect();
+</script>
+
+</body>
+</html>

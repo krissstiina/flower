@@ -1,0 +1,135 @@
+type Flower {
+    id: ID!
+    name: String!
+    color: String!
+    price: Float!
+    stockQuantity: Int!
+    description: String
+    createdAt: String!
+}
+
+type BouquetFlowerItem {
+    flowerId: ID!
+    quantity: Int!
+}
+
+type BouquetFlowerResponse {
+    flowerId: ID!
+    flowerName: String!
+    flowerColor: String!
+    quantity: Int!
+    flowerPrice: Float!
+    subtotal: Float!
+}
+
+type Bouquet {
+    id: ID!
+    name: String!
+    price: Float!
+    stockQuantity: Int!
+    flowers: [BouquetFlowerResponse!]!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type Order {
+    id: ID!
+    bouquet: Bouquet!
+    quantity: Int!
+    price: Float!
+    status: String!
+    deliveryAddress: String!
+    orderDate: String!
+    deliveryDate: String
+    createdAt: String!
+}
+
+type PagedResponse {
+    content: [Order!]!
+    pageNumber: Int!
+    pageSize: Int!
+    totalElements: Int!
+    totalPages: Int!
+    last: Boolean!
+}
+
+type StatusResponse {
+    status: String
+    error: String
+}
+
+type Query {
+#    flowers(page: Int = 0, size: Int = 10): PagedResponse!
+    flowerById(id: ID!): Flower
+    getAllFlowers: [Flower!]!
+#
+#    bouquets(page: Int = 0, size: Int = 10): PagedResponse!
+    bouquetById(id: ID!): Bouquet
+    getAllBouquets: [Bouquet!]!
+
+    orders(page: Int = 0, size: Int = 10): PagedResponse!
+    orderById(id: ID!): Order
+    getAllOrders: [Order!]!
+    ordersByStatus(status: String!): [Order!]!
+}
+
+input FlowerInput {
+    name: String!
+    color: String!
+    price: Float!
+    stockQuantity: Int!
+    description: String
+}
+
+input UpdateFlowerInput {
+    name: String!
+    color: String!
+    price: Float!
+    stockQuantity: Int!
+    description: String
+}
+
+input BouquetFlowerItemInput {
+    flowerId: ID!
+    quantity: Int!
+}
+
+input BouquetInput {
+    name: String!
+    stockQuantity: Int!
+    description: String
+    flowers: [BouquetFlowerItemInput!]!
+}
+
+input UpdateBouquetInput {
+    name: String!
+    stockQuantity: Int!
+    description: String
+}
+
+input OrderInput {
+    bouquetId: ID!
+    quantity: Int!
+    deliveryAddress: String!
+}
+
+input UpdateOrderStatusInput {
+    status: String!
+}
+
+type Mutation {
+    createFlower(input: FlowerInput!): Flower!
+    updateFlower(id: ID!, input: UpdateFlowerInput!): Flower!
+    deleteFlower(id: ID!): ID!
+
+    createBouquet(input: BouquetInput!): Bouquet!
+    updateBouquet(id: ID!, input: UpdateBouquetInput!): Bouquet!
+    updateBouquetComposition(id: ID!, flowers: [BouquetFlowerItemInput!]!): Bouquet!
+    deleteBouquet(id: ID!): ID!
+
+    createOrder(input: OrderInput!): Order!
+    updateOrderStatus(id: ID!, input: UpdateOrderStatusInput!): Order!
+    updateDeliveryDate(id: ID!, deliveryDate: String!): Order!
+    cancelOrder(id: ID!): Order!
+    deleteOrder(id: ID!): ID!
+}

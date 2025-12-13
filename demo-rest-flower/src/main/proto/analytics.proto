@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "grpc.flowers";
+
+service BouquetAnalyticsService {
+  rpc CalculateBouquetPopularity (BouquetAnalyticsRequest)
+        returns (BouquetAnalyticsResponse) {}
+}
+
+message BouquetAnalyticsRequest {
+  int64 bouquet_id = 1;
+  int32 total_sales = 2;
+  int32 recent_sales = 3;
+  int32 user_likes = 4;
+}
+
+message BouquetAnalyticsResponse {
+  int64 bouquet_id = 1;
+  int32 popularity_score = 2;     // Должно быть int32, а не double
+  string popularity_level = 3;
+  string recommendation = 4;
+}
