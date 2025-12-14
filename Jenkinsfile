@@ -15,6 +15,9 @@ pipeline {
                   cd flower-events-contract
                   ./mvnw clean install -DskipTests
 
+                  cd ../flower-api-contract
+                  ./mvnw clean install -DskipTests
+
                   cd ../demo-rest-flower
                   ./mvnw clean package -DskipTests
 
