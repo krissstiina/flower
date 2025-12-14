@@ -10,6 +10,11 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
+# Maven Wrapper - НЕ игнорируем (нужен для сборки)
+!mvnw
+!mvnw.cmd
+!.mvn/wrapper/maven-wrapper.properties
+
 # IDE
 .idea/
 *.iml
