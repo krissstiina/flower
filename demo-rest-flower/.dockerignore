@@ -1,0 +1,38 @@
+# Исключаем все в target/, кроме JAR файлов
+target/classes/
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/
+target/protoc-dependencies/
+target/protoc-plugins/
+target/test-classes/
+target/*.jar.original
+target/*.class
+
+# Исключаем исходный код (уже скомпилирован)
+src/
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml
+
+# Исключаем IDE файлы
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Исключаем Git
+.git/
+.gitignore
+
+# Исключаем другие артефакты
+out/
+lib/
+*.log
+*.md
+HELP.md
+docker-compose.yml
+
