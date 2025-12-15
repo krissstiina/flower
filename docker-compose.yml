@@ -15,9 +15,10 @@ services:
       - flower-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 3s
       retries: 5
+      start_period: 10s
 
   # RabbitMQ
   rabbitmq:
@@ -33,10 +34,10 @@ services:
       - flower-network
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 3s
       retries: 10
-      start_period: 30s
+      start_period: 20s
 
   # Zipkin для трейсинга
   zipkin:
@@ -48,10 +49,10 @@ services:
       - flower-network
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9411/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
   # Prometheus для метрик
   prometheus:
@@ -67,11 +68,6 @@ services:
       - '--storage.tsdb.path=/prometheus'
     networks:
       - flower-network
-    depends_on:
-      - demo-rest
-      - audit-service
-      - analytics-service
-      - notification-service
     restart: unless-stopped
 
   # Grafana для визуализации метрик
@@ -127,6 +123,8 @@ services:
       RABBITMQ_PORT: 5672
       GRPC_ANALYTICS_HOST: analytics-service
       GRPC_ANALYTICS_PORT: 9090
+      # Оптимизация JVM для быстрого старта
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "8080:8080"
     depends_on:
@@ -136,6 +134,12 @@ services:
         condition: service_healthy
     networks:
       - flower-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   # Analytics Service (gRPC)
@@ -144,13 +148,22 @@ services:
       context: ./flower-analytics-service
       dockerfile: Dockerfile
     container_name: analytics-service
+    environment:
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "9090:9090"  
       - "8081:8081"  
     depends_on:
-      - zipkin
+      zipkin:
+        condition: service_healthy
     networks:
       - flower-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   # Audit Service
@@ -162,6 +175,7 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "8082:8082"
     depends_on:
@@ -173,6 +187,12 @@ services:
         condition: service_healthy
     networks:
       - flower-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   # Notification Service
@@ -184,6 +204,7 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "8083:8083"
     depends_on:
@@ -193,6 +214,12 @@ services:
         condition: service_healthy
     networks:
       - flower-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
 volumes:
@@ -204,4 +231,3 @@ volumes:
 networks:
   flower-network:
     driver: bridge
-

@@ -4,12 +4,13 @@ FROM eclipse-temurin:21-jre-alpine
 # Создаем рабочую директорию
 WORKDIR /app
 
+# Устанавливаем wget для healthcheck
+RUN apk add --no-cache wget
+
 # Создаем пользователя 'javauser', чтобы не запускать приложение от root (Security Best Practice)
 RUN addgroup -S javauser && adduser -S javauser -G javauser
 
-# Аргумент для поиска JAR файла.
-# Мы ищем любой JAR, но исключаем *-sources.jar или *-javadoc.jar если они есть.
-# Перед сборкой еще сделайте mvn clean, в папке target будет лежать нужный нам fat-jar.
+# Аргумент для поиска JAR файла
 ARG JAR_FILE=target/*.jar
 
 # Копируем JAR внутрь образа под именем app.jar
@@ -24,7 +25,5 @@ USER javauser
 # Документируем порт (gRPC порт и HTTP порт для actuator)
 EXPOSE 9090 8081
 
-# Запускаем приложение
-# Использование exec формы ["..."] позволяет корректно передавать сигналы остановки (SIGTERM)
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
+# Запускаем приложение с оптимизацией для контейнера
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

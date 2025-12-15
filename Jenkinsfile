@@ -45,16 +45,13 @@ pipeline {
                     sh 'docker --version'
                     sh 'docker compose --version || docker compose version'
 
-                    // Останавливаем и удаляем все контейнеры из docker-compose.yml
-                    // --remove-orphans удаляет контейнеры, которые больше не определены в compose файле
+                    // Останавливаем старые контейнеры (кроме Jenkins)
                     sh 'docker compose down --remove-orphans || true'
 
-                    // Собираем образы без кеша (--no-cache) для гарантии свежей сборки
-                    // Исключаем Jenkins, чтобы не было конфликта (он уже запущен)
-                    sh 'docker compose build --no-cache demo-rest analytics-service audit-service notification-service || docker compose build --no-cache'
+                    // Собираем образы (с кешем для скорости)
+                    sh 'docker compose build demo-rest analytics-service audit-service notification-service'
 
-                    // Запускаем контейнеры в фоновом режиме (-d)
-                    // Исключаем Jenkins из запуска
+                    // Запускаем контейнеры (без Jenkins)
                     sh 'docker compose up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service'
                 }
             }
