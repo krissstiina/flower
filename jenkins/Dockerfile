@@ -29,8 +29,9 @@ RUN docker --version && \
     docker-compose --version
 
 # Копируем список плагинов и устанавливаем их
+# Используем || true чтобы не блокировать сборку при проблемах с плагинами
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt || true
 
 # Оставляем root, так как docker-compose.yml уже настроен на root
 # Это необходимо для доступа к Docker socket

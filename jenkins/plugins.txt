@@ -7,4 +7,3 @@ docker-workflow
 maven-plugin
 jdk-tool
 pipeline-stage-view
-cloudbees
