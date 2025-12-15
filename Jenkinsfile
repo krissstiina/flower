@@ -82,9 +82,12 @@ pipeline {
                     
                     cd ${WORKSPACE}
                     
-                    # Останавливаем старые контейнеры (кроме Jenkins, чтобы не конфликтовать)
-                    ${DOCKER_COMPOSE} stop postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service || true
-                    ${DOCKER_COMPOSE} rm -f postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service || true
+                    # Останавливаем и удаляем старые контейнеры (кроме Jenkins)
+                    ${DOCKER_COMPOSE} stop postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
+                    ${DOCKER_COMPOSE} rm -f postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
+                    
+                    # Также удаляем контейнеры напрямую через docker, если они все еще существуют
+                    docker rm -f flower_shop_db flower_rabbitmq flower_zipkin flower_prometheus flower_grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
                     
                     # Собираем образы с кешированием слоев (без Jenkins)
                     ${DOCKER_COMPOSE} build --parallel demo-rest analytics-service audit-service notification-service || ${DOCKER_COMPOSE} build demo-rest analytics-service audit-service notification-service
