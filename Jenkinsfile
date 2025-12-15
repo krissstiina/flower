@@ -41,20 +41,14 @@ pipeline {
             }
         }
 
-        stage('Docker Compose Build') {
+        stage('Docker Build') {
             steps {
                 script {
                     sh 'docker --version'
                     sh 'docker compose --version || docker compose version'
 
-                    // Останавливаем старые контейнеры (кроме Jenkins)
-                    sh 'docker compose down --remove-orphans || true'
-
-                    // Собираем образы (с кешем для скорости)
+                    // Собираем Docker образы (только билд, без запуска)
                     sh 'docker compose build demo-rest analytics-service audit-service notification-service'
-
-                    // Запускаем контейнеры (без Jenkins)
-                    sh 'docker compose up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service'
                 }
             }
         }
