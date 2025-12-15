@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3'
+        maven 'maven-3.9.9'
     }
 
     environment {
+        JAVA_HOME = tool 'jdk-21'
+        PATH = "${JAVA_HOME}/bin:${PATH}"
         MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository"
         MVN_OPTS = "-B -T 1C"
     }
@@ -13,8 +15,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                sh 'which java || true'
+                sh 'java -version'
+                sh 'javac -version'
+                sh 'echo "JAVA_HOME=$JAVA_HOME"'
+                sh 'mvn -v'
                 checkout scm
-                sh 'mvn -v || echo "Maven not found, will use mvnw"'
+                sh 'git submodule init || true'
+                sh 'git submodule update --recursive --remote || true'
             }
         }
 
@@ -24,20 +32,12 @@ pipeline {
                     echo "Building flower-events-contract..."
                     sh '''
                         cd flower-events-contract
-                        if command -v mvn &> /dev/null; then
-                            mvn ${MVN_OPTS} install -DskipTests
-                        else
-                            ./mvnw ${MVN_OPTS} install -DskipTests
-                        fi
+                        mvn ${MVN_OPTS} install -DskipTests
                     '''
                     echo "Building flower-api-contract..."
                     sh '''
                         cd flower-api-contract
-                        if command -v mvn &> /dev/null; then
-                            mvn ${MVN_OPTS} install -DskipTests
-                        else
-                            ./mvnw ${MVN_OPTS} install -DskipTests
-                        fi
+                        mvn ${MVN_OPTS} install -DskipTests
                     '''
                 }
             }
@@ -52,44 +52,28 @@ pipeline {
                             echo "Building demo-rest-flower..."
                             sh '''
                                 cd demo-rest-flower
-                                if command -v mvn &> /dev/null; then
-                                    mvn ${MVN_OPTS} package -DskipTests
-                                else
-                                    ./mvnw ${MVN_OPTS} package -DskipTests
-                                fi
+                                mvn ${MVN_OPTS} package -DskipTests
                             '''
                         },
                         'analytics-service': {
                             echo "Building flower-analytics-service..."
                             sh '''
                                 cd flower-analytics-service
-                                if command -v mvn &> /dev/null; then
-                                    mvn ${MVN_OPTS} package -DskipTests
-                                else
-                                    ./mvnw ${MVN_OPTS} package -DskipTests
-                                fi
+                                mvn ${MVN_OPTS} package -DskipTests
                             '''
                         },
                         'audit-service': {
                             echo "Building flower-audit-service..."
                             sh '''
                                 cd flower-audit-service
-                                if command -v mvn &> /dev/null; then
-                                    mvn ${MVN_OPTS} package -DskipTests
-                                else
-                                    ./mvnw ${MVN_OPTS} package -DskipTests
-                                fi
+                                mvn ${MVN_OPTS} package -DskipTests
                             '''
                         },
                         'notification-service': {
                             echo "Building notification-service..."
                             sh '''
                                 cd notification-service
-                                if command -v mvn &> /dev/null; then
-                                    mvn ${MVN_OPTS} package -DskipTests
-                                else
-                                    ./mvnw ${MVN_OPTS} package -DskipTests
-                                fi
+                                mvn ${MVN_OPTS} package -DskipTests
                             '''
                         }
                     )
@@ -102,8 +86,8 @@ pipeline {
             steps {
                 script {
                     sh 'docker --version'
-                    sh 'docker compose version || docker-compose --version || true'
-                    
+                    sh 'docker compose --version || docker compose version'
+
                     // Определяем команду docker compose
                     sh '''
                         DOCKER_COMPOSE="docker compose"
