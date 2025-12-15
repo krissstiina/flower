@@ -145,8 +145,8 @@ services:
       dockerfile: Dockerfile
     container_name: analytics-service
     ports:
-      - "9090:9090"  # gRPC порт
-      - "8081:8081"  # HTTP порт для Actuator
+      - "9090:9090"  
+      - "8081:8081"  
     depends_on:
       - zipkin
     networks:
