@@ -1,10 +1,12 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'M3'
+    }
+
     environment {
-        // Кеширование Maven репозитория между сборками
         MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository"
-        // Оптимизация Maven для быстрой сборки (убрали -q чтобы видеть прогресс)
         MVN_OPTS = "-B -T 1C"
     }
 
@@ -12,22 +14,30 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                sh 'mvn -v || echo "Maven not found, will use mvnw"'
             }
         }
 
         stage('Build contracts') {
             steps {
                 script {
-                    // Собираем контракты последовательно (они могут зависеть друг от друга)
                     echo "Building flower-events-contract..."
                     sh '''
                         cd flower-events-contract
-                        ./mvnw install ${MVN_OPTS} -DskipTests
+                        if command -v mvn &> /dev/null; then
+                            mvn ${MVN_OPTS} install -DskipTests
+                        else
+                            ./mvnw ${MVN_OPTS} install -DskipTests
+                        fi
                     '''
                     echo "Building flower-api-contract..."
                     sh '''
                         cd flower-api-contract
-                        ./mvnw install ${MVN_OPTS} -DskipTests
+                        if command -v mvn &> /dev/null; then
+                            mvn ${MVN_OPTS} install -DskipTests
+                        else
+                            ./mvnw ${MVN_OPTS} install -DskipTests
+                        fi
                     '''
                 }
             }
@@ -36,35 +46,50 @@ pipeline {
         stage('Build services') {
             steps {
                 script {
-                    // Собираем сервисы параллельно для ускорения
                     echo "Building all services in parallel..."
                     parallel(
                         'demo-rest': {
                             echo "Building demo-rest-flower..."
                             sh '''
                                 cd demo-rest-flower
-                                ./mvnw package ${MVN_OPTS} -DskipTests
+                                if command -v mvn &> /dev/null; then
+                                    mvn ${MVN_OPTS} package -DskipTests
+                                else
+                                    ./mvnw ${MVN_OPTS} package -DskipTests
+                                fi
                             '''
                         },
                         'analytics-service': {
                             echo "Building flower-analytics-service..."
                             sh '''
                                 cd flower-analytics-service
-                                ./mvnw package ${MVN_OPTS} -DskipTests
+                                if command -v mvn &> /dev/null; then
+                                    mvn ${MVN_OPTS} package -DskipTests
+                                else
+                                    ./mvnw ${MVN_OPTS} package -DskipTests
+                                fi
                             '''
                         },
                         'audit-service': {
                             echo "Building flower-audit-service..."
                             sh '''
                                 cd flower-audit-service
-                                ./mvnw package ${MVN_OPTS} -DskipTests
+                                if command -v mvn &> /dev/null; then
+                                    mvn ${MVN_OPTS} package -DskipTests
+                                else
+                                    ./mvnw ${MVN_OPTS} package -DskipTests
+                                fi
                             '''
                         },
                         'notification-service': {
                             echo "Building notification-service..."
                             sh '''
                                 cd notification-service
-                                ./mvnw package ${MVN_OPTS} -DskipTests
+                                if command -v mvn &> /dev/null; then
+                                    mvn ${MVN_OPTS} package -DskipTests
+                                else
+                                    ./mvnw ${MVN_OPTS} package -DskipTests
+                                fi
                             '''
                         }
                     )
@@ -73,28 +98,35 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Compose Build') {
             steps {
-                sh '''
-                    # Определяем команду docker compose
-                    DOCKER_COMPOSE="docker compose"
-                    docker compose version > /dev/null 2>&1 || DOCKER_COMPOSE="docker-compose"
+                script {
+                    sh 'docker --version'
+                    sh 'docker compose version || docker-compose --version || true'
                     
-                    cd ${WORKSPACE}
-                    
-                    # Останавливаем и удаляем старые контейнеры (кроме Jenkins)
-                    ${DOCKER_COMPOSE} stop postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
-                    ${DOCKER_COMPOSE} rm -f postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
-                    
-                    # Также удаляем контейнеры напрямую через docker, если они все еще существуют
-                    docker rm -f flower_shop_db flower_rabbitmq flower_zipkin flower_prometheus flower_grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
-                    
-                    # Собираем образы с кешированием слоев (без Jenkins)
-                    ${DOCKER_COMPOSE} build --parallel demo-rest analytics-service audit-service notification-service || ${DOCKER_COMPOSE} build demo-rest analytics-service audit-service notification-service
-                    
-                    # Запускаем контейнеры (без Jenkins)
-                    ${DOCKER_COMPOSE} up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service
-                '''
+                    // Определяем команду docker compose
+                    sh '''
+                        DOCKER_COMPOSE="docker compose"
+                        if ! docker compose version > /dev/null 2>&1; then
+                            DOCKER_COMPOSE="docker-compose"
+                        fi
+                        
+                        cd ${WORKSPACE}
+                        
+                        # Останавливаем и удаляем старые контейнеры (кроме Jenkins)
+                        ${DOCKER_COMPOSE} stop postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
+                        ${DOCKER_COMPOSE} rm -f postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
+                        
+                        # Также удаляем контейнеры напрямую через docker, если они все еще существуют
+                        docker rm -f flower_shop_db flower_rabbitmq flower_zipkin flower_prometheus flower_grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
+                        
+                        # Собираем образы (без Jenkins)
+                        ${DOCKER_COMPOSE} build --parallel demo-rest analytics-service audit-service notification-service || ${DOCKER_COMPOSE} build demo-rest analytics-service audit-service notification-service
+                        
+                        # Запускаем контейнеры (без Jenkins)
+                        ${DOCKER_COMPOSE} up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service
+                    '''
+                }
             }
         }
 
@@ -108,7 +140,7 @@ pipeline {
                         [name: 'notification-service', url: 'http://localhost:8083/actuator/health']
                     ]
                     
-                    // Упрощенный health check с таймаутом
+                    echo "Waiting for services to become healthy..."
                     services.each { service ->
                         def maxAttempts = 20
                         def waitTime = 3
@@ -130,7 +162,7 @@ pipeline {
                         }
                         
                         if (!success) {
-                            error("${service.name} failed to become healthy")
+                            error("${service.name} failed to become healthy after ${maxAttempts * waitTime} seconds")
                         }
                     }
                     
@@ -148,7 +180,9 @@ pipeline {
             echo '✗ Build failed'
             sh '''
                 DOCKER_COMPOSE="docker compose"
-                docker compose version > /dev/null 2>&1 || DOCKER_COMPOSE="docker-compose"
+                if ! docker compose version > /dev/null 2>&1; then
+                    DOCKER_COMPOSE="docker-compose"
+                fi
                 ${DOCKER_COMPOSE} logs --tail=100 || true
             '''
         }
