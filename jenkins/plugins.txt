@@ -1,0 +1,50 @@
+# Основные плагины для Pipeline
+workflow-aggregator
+pipeline-stage-view
+pipeline-graph-analysis
+pipeline-milestone-step
+pipeline-build-step
+pipeline-input-step
+
+# Maven Integration
+maven-plugin
+pipeline-maven
+
+# Git Integration
+git
+git-client
+scm-api
+subversion
+
+# Docker Integration
+docker-workflow
+docker-plugin
+docker-commons
+
+# JDK и инструменты
+jdk-tool
+
+# Утилиты
+timestamper
+ws-cleanup
+credentials-binding
+ssh-credentials
+plain-credentials
+
+# UI и удобство использования
+blue-ocean
+blueocean-pipeline-editor
+blueocean-git-pipeline
+blueocean-dashboard
+blueocean-pipeline-scm-api
+
+# Дополнительные полезные плагины
+build-timeout
+ant
+gradle
+script-security
+structs
+junit
+warnings-ng
+htmlpublisher
+
