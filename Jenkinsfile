@@ -1,12 +1,19 @@
 pipeline {
     agent any
 
-   
     triggers {
+        // Проверяет изменения каждую минуту (H - случайная минута для распределения нагрузки)
         pollSCM('H/1 * * * *')
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh 'git submodule init || true'
+                sh 'git submodule update --recursive --remote || true'
+            }
+        }
         stage('Build Contracts') {
             steps {
                 script {
