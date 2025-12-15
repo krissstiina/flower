@@ -1,37 +1,10 @@
-# Основные плагины для Pipeline
-workflow-aggregator
-pipeline-stage-view
-pipeline-graph-analysis
-pipeline-milestone-step
-pipeline-build-step
-pipeline-input-step
-
-# Maven Integration
-maven-plugin
-pipeline-maven
-
-# Git Integration
 git
-git-client
-scm-api
-subversion
-
-# Docker Integration
+workflow-aggregator
+workflow-job
+workflow-cps
+pipeline-model-definition
 docker-workflow
-docker-plugin
-docker-commons
-
-# JDK и инструменты
+maven-plugin
 jdk-tool
-
-# Утилиты
-timestamper
-ws-cleanup
-credentials-binding
-ssh-credentials
-plain-credentials
-
-
-
-
-
+pipeline-stage-view
+cloudbees
