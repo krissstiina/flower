@@ -36,8 +36,8 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 10s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
 
   # Zipkin для трейсинга
   zipkin:
@@ -161,7 +161,7 @@ services:
       rabbitmq:
         condition: service_healthy
       zipkin:
-        condition: service_healthy
+        condition: service_started
     networks:
       - flower-network
     restart: unless-stopped
@@ -181,7 +181,7 @@ services:
       rabbitmq:
         condition: service_healthy
       zipkin:
-        condition: service_healthy
+        condition: service_started
     networks:
       - flower-network
     restart: unless-stopped
