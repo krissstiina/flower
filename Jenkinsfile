@@ -43,16 +43,16 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
-            steps {
-                script {
-                    sh 'docker --version'
-                    sh 'docker compose --version || docker compose version'
+        // stage('Docker Build') {
+        //     steps {
+        //         script {
+        //             sh 'docker --version'
+        //             sh 'docker compose --version || docker compose version'
 
-                    sh 'docker compose build demo-rest analytics-service audit-service notification-service'
-                }
-            }
-        }
+        //             sh 'docker compose build demo-rest analytics-service audit-service notification-service'
+        //         }
+        //     }
+        // }
     }
 
     post {
