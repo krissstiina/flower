@@ -31,20 +31,7 @@ credentials-binding
 ssh-credentials
 plain-credentials
 
-# UI и удобство использования
-blue-ocean
-blueocean-pipeline-editor
-blueocean-git-pipeline
-blueocean-dashboard
-blueocean-pipeline-scm-api
 
-# Дополнительные полезные плагины
-build-timeout
-ant
-gradle
-script-security
-structs
-junit
-warnings-ng
-htmlpublisher
+
+
 
