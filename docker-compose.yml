@@ -24,12 +24,15 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: flower_rabbitmq
+    hostname: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - flower-network
     healthcheck:
@@ -38,6 +41,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
+    restart: unless-stopped
 
   # Zipkin для трейсинга
   zipkin:
@@ -191,6 +195,7 @@ volumes:
   prometheus_data:
   grafana_data:
   jenkins_home:
+  rabbitmq_data:
 
 networks:
   flower-network:
