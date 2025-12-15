@@ -27,32 +27,14 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Собираем контракты сначала
-                    sh '''
-                        cd flower-events-contract
-                        mvn -B clean install -DskipTests
-                    '''
-                    sh '''
-                        cd flower-api-contract
-                        mvn -B clean install -DskipTests
-                    '''
+                    // Собираем контракты сначала (они нужны для сервисов)
+                    sh 'cd flower-events-contract && mvn -B clean install -DskipTests'
+                    sh 'cd flower-api-contract && mvn -B clean install -DskipTests'
                     // Затем собираем сервисы
-                    sh '''
-                        cd demo-rest-flower
-                        mvn -B clean package -DskipTests
-                    '''
-                    sh '''
-                        cd flower-analytics-service
-                        mvn -B clean package -DskipTests
-                    '''
-                    sh '''
-                        cd flower-audit-service
-                        mvn -B clean package -DskipTests
-                    '''
-                    sh '''
-                        cd notification-service
-                        mvn -B clean package -DskipTests
-                    '''
+                    sh 'cd demo-rest-flower && mvn -B clean package -DskipTests'
+                    sh 'cd flower-analytics-service && mvn -B clean package -DskipTests'
+                    sh 'cd flower-audit-service && mvn -B clean package -DskipTests'
+                    sh 'cd notification-service && mvn -B clean package -DskipTests'
                 }
             }
         }
@@ -63,22 +45,17 @@ pipeline {
                     sh 'docker --version'
                     sh 'docker compose --version || docker compose version'
 
-                    sh '''
-                        DOCKER_COMPOSE="docker compose"
-                        if ! docker compose version > /dev/null 2>&1; then
-                            DOCKER_COMPOSE="docker-compose"
-                        fi
-                        
-                        cd ${WORKSPACE}
-                        
-                        ${DOCKER_COMPOSE} down --remove-orphans || true
-                        
-                        docker rm -f flower_shop_db flower_rabbitmq flower_zipkin flower_prometheus flower_grafana demo-rest analytics-service audit-service notification-service 2>/dev/null || true
-                        
-                        ${DOCKER_COMPOSE} build --parallel demo-rest analytics-service audit-service notification-service || ${DOCKER_COMPOSE} build demo-rest analytics-service audit-service notification-service
-                        
-                        ${DOCKER_COMPOSE} up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service
-                    '''
+                    // Останавливаем и удаляем все контейнеры из docker-compose.yml
+                    // --remove-orphans удаляет контейнеры, которые больше не определены в compose файле
+                    sh 'docker compose down --remove-orphans || true'
+
+                    // Собираем образы без кеша (--no-cache) для гарантии свежей сборки
+                    // Исключаем Jenkins, чтобы не было конфликта (он уже запущен)
+                    sh 'docker compose build --no-cache demo-rest analytics-service audit-service notification-service || docker compose build --no-cache'
+
+                    // Запускаем контейнеры в фоновом режиме (-d)
+                    // Исключаем Jenkins из запуска
+                    sh 'docker compose up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service'
                 }
             }
         }
