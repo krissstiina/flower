@@ -4,8 +4,8 @@ pipeline {
     environment {
         // Кеширование Maven репозитория между сборками
         MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository"
-        // Оптимизация Maven для быстрой сборки
-        MVN_OPTS = "-B -q -T 1C"
+        // Оптимизация Maven для быстрой сборки (убрали -q чтобы видеть прогресс)
+        MVN_OPTS = "-B -T 1C"
     }
 
     stages {
@@ -19,10 +19,12 @@ pipeline {
             steps {
                 script {
                     // Собираем контракты последовательно (они могут зависеть друг от друга)
+                    echo "Building flower-events-contract..."
                     sh '''
                         cd flower-events-contract
                         ./mvnw install ${MVN_OPTS} -DskipTests
                     '''
+                    echo "Building flower-api-contract..."
                     sh '''
                         cd flower-api-contract
                         ./mvnw install ${MVN_OPTS} -DskipTests
@@ -35,32 +37,38 @@ pipeline {
             steps {
                 script {
                     // Собираем сервисы параллельно для ускорения
+                    echo "Building all services in parallel..."
                     parallel(
                         'demo-rest': {
+                            echo "Building demo-rest-flower..."
                             sh '''
                                 cd demo-rest-flower
                                 ./mvnw package ${MVN_OPTS} -DskipTests
                             '''
                         },
                         'analytics-service': {
+                            echo "Building flower-analytics-service..."
                             sh '''
                                 cd flower-analytics-service
                                 ./mvnw package ${MVN_OPTS} -DskipTests
                             '''
                         },
                         'audit-service': {
+                            echo "Building flower-audit-service..."
                             sh '''
                                 cd flower-audit-service
                                 ./mvnw package ${MVN_OPTS} -DskipTests
                             '''
                         },
                         'notification-service': {
+                            echo "Building notification-service..."
                             sh '''
                                 cd notification-service
                                 ./mvnw package ${MVN_OPTS} -DskipTests
                             '''
                         }
                     )
+                    echo "All services built successfully!"
                 }
             }
         }
@@ -74,14 +82,15 @@ pipeline {
                     
                     cd ${WORKSPACE}
                     
-                    # Останавливаем старые контейнеры
-                    ${DOCKER_COMPOSE} down || true
+                    # Останавливаем старые контейнеры (кроме Jenkins, чтобы не конфликтовать)
+                    ${DOCKER_COMPOSE} stop postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service || true
+                    ${DOCKER_COMPOSE} rm -f postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service || true
                     
-                    # Собираем образы с кешированием слоев
-                    ${DOCKER_COMPOSE} build --parallel || ${DOCKER_COMPOSE} build
+                    # Собираем образы с кешированием слоев (без Jenkins)
+                    ${DOCKER_COMPOSE} build --parallel demo-rest analytics-service audit-service notification-service || ${DOCKER_COMPOSE} build demo-rest analytics-service audit-service notification-service
                     
-                    # Запускаем контейнеры
-                    ${DOCKER_COMPOSE} up -d
+                    # Запускаем контейнеры (без Jenkins)
+                    ${DOCKER_COMPOSE} up -d postgres rabbitmq zipkin prometheus grafana demo-rest analytics-service audit-service notification-service
                 '''
             }
         }
