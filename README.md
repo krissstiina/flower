@@ -163,7 +163,8 @@ docker stats
 - 8081 - Analytics Service (HTTP/Actuator)
 - 8082 - Audit Service
 - 8083 - Notification Service
-- 9090 - Prometheus и Analytics Service (gRPC)
+- 9090 - Analytics Service (gRPC)
+- 9091 - Prometheus (внешний доступ, внутренний порт 9090)
 - 9411 - Zipkin
 - 5433 - PostgreSQL (внешний доступ)
 - 5672 - RabbitMQ

@@ -22,7 +22,7 @@ RUN chown javauser:javauser /app/app.jar
 USER javauser
 
 # Документируем порт (gRPC порт и HTTP порт для actuator)
-EXPOSE 9090 8080
+EXPOSE 9090 8081
 
 # Запускаем приложение
 # Использование exec формы ["..."] позволяет корректно передавать сигналы остановки (SIGTERM)

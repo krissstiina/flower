@@ -1,17 +1,15 @@
 package com.example.demo.listeners;
-import org.springframework.amqp.support.converter.SimpleMessageConverter;
+
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 @Configuration
 public class RabbitMQConfig {
 
     @Bean
-    public SimpleMessageConverter messageConverter() {
-        SimpleMessageConverter converter = new SimpleMessageConverter();
-        converter.setAllowedListPatterns(List.of("org.example.events.*", "java.time.*"));
-        return converter;
+    public MessageConverter messageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 }
