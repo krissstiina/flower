@@ -140,8 +140,5 @@ pipeline {
                 ${DOCKER_COMPOSE} logs --tail=100 || true
             '''
         }
-        always {
-            // Очистка не нужна - Jenkins сам управляет workspace
-        }
     }
 }
