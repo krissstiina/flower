@@ -12,7 +12,6 @@ http://localhost:9090
 - `jvm_memory_used_bytes` - использование памяти JVM
 - `process_cpu_usage` - использование CPU
 
-
 ## Порты
 
 - 8080 - Demo REST API
