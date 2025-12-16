@@ -10,7 +10,7 @@
    - Скачать: https://www.docker.com/products/docker-desktop
    - Убедитесь, что Docker Desktop запущен
 
-3. **Java JDK 17 или 21** (опционально, если хотите использовать установленный Maven)
+3. **Java JDK 17** (опционально, если хотите использовать установленный Maven)
    - Maven Wrapper (mvnw) не требует установки Maven/Java, но Java нужна для запуска приложений
    - Скачать: https://adoptium.net/
 
