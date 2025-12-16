@@ -1,6 +1,30 @@
 # Flower Shop
 
+## Быстрый старт
+
+### Linux/macOS
+```bash
+git clone https://github.com/krissstiina/flower.git
+cd flower
+./build.sh
+docker-compose up -d
+```
+
+### Windows
+См. подробные инструкции в [README_WINDOWS.md](README_WINDOWS.md)
+
+```cmd
+git clone https://github.com/krissstiina/flower.git
+cd flower
+build.bat
+docker-compose up -d
+```
+
+## Получение пароля Jenkins
+
+```bash
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
 
 ### Prometheus - Метрики
 

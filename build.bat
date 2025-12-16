@@ -1,114 +1,111 @@
 @echo off
-REM ==========================================
-REM Сборка проектов Flower Shop (Windows)
-REM ==========================================
 
 setlocal enabledelayedexpansion
 
 echo.
 echo ==========================================
-echo Сборка проектов Flower Shop
+echo Building Flower Shop projects
 echo ==========================================
 echo.
 
-REM Шаг 1: Сборка контрактов
+REM Step 1: Building contracts
 echo.
-echo Шаг 1: Сборка контрактов...
+echo Step 1: Building contracts...
 echo.
 
-echo Сборка flower-events-contract...
+echo Building flower-events-contract...
 cd flower-events-contract
 if exist mvnw.cmd (
     call mvnw.cmd clean install -DskipTests
 ) else (
-    echo Ошибка: mvnw.cmd не найден!
+    echo Error: mvnw.cmd not found!
     exit /b 1
 )
 if errorlevel 1 (
-    echo Ошибка при сборке flower-events-contract
+    echo Error building flower-events-contract
     exit /b 1
 )
 cd ..
 
-echo Сборка flower-api-contract...
+echo Building flower-api-contract...
 cd flower-api-contract
 if exist mvnw.cmd (
     call mvnw.cmd clean install -DskipTests
 ) else (
-    echo Ошибка: mvnw.cmd не найден!
+    echo Error: mvnw.cmd not found!
     exit /b 1
 )
 if errorlevel 1 (
-    echo Ошибка при сборке flower-api-contract
+    echo Error building flower-api-contract
     exit /b 1
 )
 cd ..
 
-REM Шаг 2: Сборка сервисов
+REM Step 2: Building services
 echo.
-echo Шаг 2: Сборка сервисов...
+echo Step 2: Building services...
 echo.
 
-echo Сборка demo-rest-flower...
+echo Building demo-rest-flower...
 cd demo-rest-flower
 if exist mvnw.cmd (
     call mvnw.cmd clean package -DskipTests
 ) else (
-    echo Ошибка: mvnw.cmd не найден!
+    echo Error: mvnw.cmd not found!
     exit /b 1
 )
 if errorlevel 1 (
-    echo Ошибка при сборке demo-rest-flower
+    echo Error building demo-rest-flower
     exit /b 1
 )
 cd ..
 
-echo Сборка flower-analytics-service...
+echo Building flower-analytics-service...
 cd flower-analytics-service
 if exist mvnw.cmd (
     call mvnw.cmd clean package -DskipTests
 ) else (
-    echo Ошибка: mvnw.cmd не найден!
+    echo Error: mvnw.cmd not found!
     exit /b 1
 )
 if errorlevel 1 (
-    echo Ошибка при сборке flower-analytics-service
+    echo Error building flower-analytics-service
     exit /b 1
 )
 cd ..
 
-echo Сборка flower-audit-service...
+echo Building flower-audit-service...
 cd flower-audit-service
 if exist mvnw.cmd (
     call mvnw.cmd clean package -DskipTests
 ) else (
-    echo Ошибка: mvnw.cmd не найден!
+    echo Error: mvnw.cmd not found!
     exit /b 1
 )
 if errorlevel 1 (
-    echo Ошибка при сборке flower-audit-service
+    echo Error building flower-audit-service
     exit /b 1
 )
 cd ..
 
-echo Сборка notification-service...
+echo Building notification-service...
 cd notification-service
 if exist mvnw.cmd (
     call mvnw.cmd clean package -DskipTests
 ) else (
-    echo Ошибка: mvnw.cmd не найден!
+    echo Error: mvnw.cmd not found!
     exit /b 1
 )
 if errorlevel 1 (
-    echo Ошибка при сборке notification-service
+    echo Error building notification-service
     exit /b 1
 )
 cd ..
 
 echo.
 echo ==========================================
-echo Все проекты успешно собраны!
-echo Теперь можно запустить: docker-compose up -d
+echo All projects built successfully!
+echo Now you can run: docker-compose up -d
 echo ==========================================
 echo.
 
